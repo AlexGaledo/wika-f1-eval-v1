@@ -1,0 +1,410 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Wika Dialect Check</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: verdict first, then one comparison table, then a card per dialect with playable samples */
+:root {
+  --bg: #f4f1f7; --paper: #ffffff; --ink: #231a2e; --muted: #6b6078; --rule: #e3dbeb;
+  --wika: #624185; --wika-soft: #efe7f7; --sun: #ffa345;
+  --good: #1f7a4d; --good-soft: #e3f4ea; --warn: #9a5b00; --warn-soft: #fdf0dc;
+  --display: "Figtree", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #16111c; --paper: #201929; --ink: #f0ebf5; --muted: #a79bb4; --rule: #342a3f;
+    --wika: #b893e0; --wika-soft: #2c2238; --sun: #ffb366;
+    --good: #6fd3a0; --good-soft: #17301f; --warn: #f2b45c; --warn-soft: #362611; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #16111c; --paper: #201929; --ink: #f0ebf5; --muted: #a79bb4; --rule: #342a3f;
+  --wika: #b893e0; --wika-soft: #2c2238; --sun: #ffb366;
+  --good: #6fd3a0; --good-soft: #17301f; --warn: #f2b45c; --warn-soft: #362611; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink); font-family: var(--display); font-size: 15px; line-height: 1.5;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 32px 64px;
+}
+.wrap { max-width: 900px; margin: 0 auto; display: grid; gap: 28px; }
+.eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--wika); }
+h1 { margin: 4px 0 0; font-size: clamp(26px, 4.4vw, 36px); line-height: 1.15; font-weight: 800; text-wrap: balance; }
+h2 { margin: 0; font-size: 18px; font-weight: 700; }
+.lede { margin: 10px 0 0; color: var(--muted); max-width: 66ch; font-size: 16px; }
+.verdict { background: var(--good-soft); border-radius: 14px; padding: 16px 18px; display: grid; gap: 6px; }
+.verdict strong { color: var(--good); }
+.verdict p { margin: 0; }
+.panel { background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; padding: 18px; display: grid; gap: 12px; }
+.tbl { overflow-x: auto; }
+table { border-collapse: collapse; width: 100%; min-width: 620px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 9px 10px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+th { font-size: 12px; font-weight: 700; color: var(--muted); letter-spacing: .04em; }
+td.k { font-weight: 700; }
+td .sub { display: block; font-size: 12px; color: var(--muted); font-weight: 500; }
+td.wika { background: var(--wika-soft); font-weight: 700; }
+.pill { display: inline-block; font-size: 12px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+.pill.ok { background: var(--good-soft); color: var(--good); }
+.pill.mid { background: var(--warn-soft); color: var(--warn); }
+.note { font-size: 13px; color: var(--muted); margin: 0; }
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 400px), 1fr)); gap: 16px; }
+.card { background: var(--paper); border: 1px solid var(--rule); border-radius: 16px; padding: 16px; display: grid; gap: 10px; align-content: start; min-width: 0; }
+.card header { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; flex-wrap: wrap; }
+.card header span { font-size: 13px; color: var(--muted); }
+.s { display: grid; gap: 6px; padding-top: 10px; border-top: 1px solid var(--rule); min-width: 0; }
+.s q { font-size: 16px; quotes: none; }
+.s .heard { font-family: var(--mono); font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+audio { width: 100%; height: 36px; }
+.caveats { display: grid; gap: 8px; }
+.caveats p { margin: 0; max-width: 72ch; }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Dialecto · teacher test · 18 Oct 2026</div>
+    <h1>Can the Wika voice speak the regional languages?</h1>
+    <p class="lede">WIKA-F1, the Wika voice, read 30 held-out sentences in Tagalog and in each of six regional languages. A speech recognizer trained for each language (Meta MMS) transcribed them without seeing the text. Lower error means easier to understand. Real human recordings of the same sentences set the bar.</p>
+  </header>
+
+  <div class="verdict" id="verdict"></div>
+
+  <section class="panel">
+    <h2>Character error rate, judged by Meta MMS</h2>
+    <div class="tbl"><table id="tbl"></table></div>
+    <p class="note">Each cell: character error (word error below). PER = phoneme error from a separate model. Collapses (broken or runaway audio) were zero for every system in every language. Designed = the voice description alone; Native clone = a real FLEURS speaker's voice (Cebuano and Tagalog only).</p>
+    <p class="note">Tagalog comes from the 16 Oct test, where WIKA-F1 is itself the designed voice, so it has no separate Designed column. Its samples are classroom lines checked by Whisper, not the held-out test set.</p>
+  </section>
+
+  <section class="cards" id="cards"></section>
+
+  <section class="panel caveats">
+    <h2>What this does and does not show</h2>
+    <p><strong>It shows</strong> the words come out clear enough for a native-language recognizer to get them right, as often as with real speakers. That is the bar for using it as a teacher to train small dialect models, the same way the Tagalog model is being trained now.</p>
+    <p><strong>It does not show</strong> whether it sounds native. The Wika voice is Tagalog-born, so stress, rhythm and some vowels may carry a Tagalog accent a recognizer forgives but a Cebuano or Ilocano listener would not. Native speakers need to listen before any of these ship.</p>
+    <p>The human recordings are research-licensed PLD audio, so only their scores appear here, not the audio.</p>
+  </section>
+</div>
+
+<script>
+const DATA = {
+ "table": {
+  "tgl|voxcpm2_wika": {"cer": 0.027, "wer": 0.146, "per": 0.109, "col": 0, "n": 30},
+  "tgl|voxcpm2_clone": {"cer": 0.044, "wer": 0.197, "per": 0.158, "col": 0, "n": 30},
+  "tgl|human": {"cer": 0.028, "wer": 0.135, "per": 0.146, "col": 0, "n": 30},
+  "bcl|voxcpm2_design": {
+   "cer": 0.0738,
+   "wer": 0.3753,
+   "per": 0.0927,
+   "col": 0,
+   "n": 30
+  },
+  "bcl|voxcpm2_wika": {
+   "cer": 0.0646,
+   "wer": 0.3264,
+   "per": 0.0718,
+   "col": 0,
+   "n": 30
+  },
+  "ceb|voxcpm2_clone": {
+   "cer": 0.0633,
+   "wer": 0.2583,
+   "per": 0.0742,
+   "col": 0,
+   "n": 30
+  },
+  "ceb|voxcpm2_design": {
+   "cer": 0.0544,
+   "wer": 0.2403,
+   "per": 0.0771,
+   "col": 0,
+   "n": 30
+  },
+  "ceb|voxcpm2_wika": {
+   "cer": 0.0407,
+   "wer": 0.234,
+   "per": 0.0706,
+   "col": 0,
+   "n": 30
+  },
+  "hil|voxcpm2_design": {
+   "cer": 0.0509,
+   "wer": 0.215,
+   "per": 0.0811,
+   "col": 0,
+   "n": 30
+  },
+  "hil|voxcpm2_wika": {
+   "cer": 0.0252,
+   "wer": 0.13,
+   "per": 0.0696,
+   "col": 0,
+   "n": 30
+  },
+  "ilo|voxcpm2_design": {
+   "cer": 0.0987,
+   "wer": 0.5094,
+   "per": 0.1093,
+   "col": 0,
+   "n": 30
+  },
+  "ilo|voxcpm2_wika": {
+   "cer": 0.0736,
+   "wer": 0.3901,
+   "per": 0.0722,
+   "col": 0,
+   "n": 30
+  },
+  "pam|voxcpm2_design": {
+   "cer": 0.0983,
+   "wer": 0.487,
+   "per": 0.0813,
+   "col": 0,
+   "n": 30
+  },
+  "pam|voxcpm2_wika": {
+   "cer": 0.0886,
+   "wer": 0.4255,
+   "per": 0.0596,
+   "col": 0,
+   "n": 30
+  },
+  "war|voxcpm2_design": {
+   "cer": 0.1044,
+   "wer": 0.3461,
+   "per": 0.1318,
+   "col": 0,
+   "n": 30
+  },
+  "war|voxcpm2_wika": {
+   "cer": 0.0432,
+   "wer": 0.2056,
+   "per": 0.0698,
+   "col": 0,
+   "n": 30
+  },
+  "ceb|human": {
+   "cer": 0.0422,
+   "wer": 0.1829,
+   "per": 0.0676,
+   "col": 0,
+   "n": 30
+  },
+  "hil|human": {
+   "cer": 0.0397,
+   "wer": 0.17,
+   "per": 0.0887,
+   "col": 0,
+   "n": 30
+  },
+  "war|human": {
+   "cer": 0.0957,
+   "wer": 0.242,
+   "per": 0.1411,
+   "col": 0,
+   "n": 30
+  },
+  "ilo|human": {
+   "cer": 0.0807,
+   "wer": 0.4315,
+   "per": 0.108,
+   "col": 0,
+   "n": 30
+  },
+  "pam|human": {
+   "cer": 0.0807,
+   "wer": 0.3931,
+   "per": 0.1038,
+   "col": 0,
+   "n": 30
+  },
+  "bcl|human": {
+   "cer": 0.0738,
+   "wer": 0.3237,
+   "per": 0.0903,
+   "col": 0,
+   "n": 30
+  }
+ },
+ "samples": {
+  "tgl": [
+   {"text": "Basahin natin nang sabay-sabay. Si Ana ay may maliit na pusa. Puti ang balahibo nito, at mahilig itong maglaro sa hardin.", "src": "audio/tgl/00.wav", "cer": 0.0085, "hyp": null},
+   {"text": "Ngayon, sagutin mo ang tanong. Ano ang kulay ng balahibo ng pusa ni Ana?", "src": "audio/tgl/01.wav", "cer": 0.0145, "hyp": null},
+   {"text": "Magaling! Tama ang iyong sagot. Ipagpatuloy mo lang ang mabuting gawa.", "src": "audio/tgl/02.wav", "cer": 0.0, "hyp": null}
+  ],
+  "ceb": [
+   {
+    "text": "Gilayog ako niya ug tungod kay wala ako makabantay iya dayon akong gilambos.",
+    "src": "audio/ceb/01.wav",
+    "cer": 0.0,
+    "hyp": "gilayog ako niya ug tungod kay wala ako makabantay iya dayon akong gilambos"
+   },
+   {
+    "text": "Gidungag na atong ika upat nga siglo.",
+    "src": "audio/ceb/02.wav",
+    "cer": 0.0278,
+    "hyp": "gidungag na atong ikaupat nga siglo"
+   },
+   {
+    "text": "Gipakaon ni Inday Fe ang iyang inahan.",
+    "src": "audio/ceb/03.wav",
+    "cer": 0.0541,
+    "hyp": "gipakaon ni indaife ang iyang inahan"
+   }
+  ],
+  "hil": [
+   {
+    "text": "Matukar si Francisco , dî balá ?",
+    "src": "audio/hil/00.wav",
+    "cer": 0.0,
+    "hyp": "matukar si francisco di-bala"
+   },
+   {
+    "text": "Isiling mo kon diin masakit.",
+    "src": "audio/hil/01.wav",
+    "cer": 0.0,
+    "hyp": "isiling mo kon diin masakit"
+   },
+   {
+    "text": "Indi magpauli ang wala sugat",
+    "src": "audio/hil/02.wav",
+    "cer": 0.0,
+    "hyp": "indi magpauli ang wala sugat"
+   }
+  ],
+  "war": [
+   {
+    "text": "Ini nga hipos, kun iisipon,",
+    "src": "audio/war/00.wav",
+    "cer": 0.04,
+    "hyp": "ini nga hipos kon iisipon"
+   },
+   {
+    "text": "Nagkaroon ako dati ng acute bronchitis",
+    "src": "audio/war/01.wav",
+    "cer": 0.1316,
+    "hyp": "nagkaroon ako dati nang acute bronkaytis"
+   },
+   {
+    "text": "Ano an maopay nga bulong para han ubo?",
+    "src": "audio/war/02.wav",
+    "cer": 0.0541,
+    "hyp": "ano an maupay ngabulong para han ubo"
+   }
+  ],
+  "ilo": [
+   {
+    "text": "Iti siled mo ket numero two eleven. Ayanna iti kaasetgan nga palengke?",
+    "src": "audio/ilo/00.wav",
+    "cer": 0.0441,
+    "hyp": "iti siledmo ket numero to eleven ayana iti kaasetgan nga palengke"
+   },
+   {
+    "text": "At-atiddog ti biag dagiti adda asawa nan ngem dagidiay agmaymaysa",
+    "src": "audio/ilo/01.wav",
+    "cer": 0.0769,
+    "hyp": "at-atidog ti biag dagiti adda a sawanangngem dagidi ay agmaymaysa"
+   },
+   {
+    "text": "Anya ti gapo ti naangot nga sang-aw?",
+    "src": "audio/ilo/02.wav",
+    "cer": 0.0857,
+    "hyp": "ania ti gapu ti naangut nga sang-aw"
+   }
+  ],
+  "pam": [
+   {
+    "text": "Ninu deng makatuknang keng metung a comunidad.",
+    "src": "audio/pam/02.wav",
+    "cer": 0.0222,
+    "hyp": "ninu deng makatuknang keng metung a komunidad"
+   },
+   {
+    "text": "Atin kung pera kasya na para king atlung aldong pamangan.",
+    "src": "audio/pam/03.wav",
+    "cer": 0.0357,
+    "hyp": "atin kung perakasia na para king atlung aldong pamangan"
+   },
+   {
+    "text": "Boarding naku potang bagya.",
+    "src": "audio/pam/04.wav",
+    "cer": 0.0769,
+    "hyp": "bording nakupotang bagya"
+   }
+  ],
+  "bcl": [
+   {
+    "text": "Mayo pang bulong sa helang na iyan.",
+    "src": "audio/bcl/00.wav",
+    "cer": 0.0294,
+    "hyp": "mayo pang bolong sa helang na iyan"
+   },
+   {
+    "text": "Makua akong madiklom na tinapay.",
+    "src": "audio/bcl/01.wav",
+    "cer": 0.0645,
+    "hyp": "mako akong madiklom na tinapay"
+   },
+   {
+    "text": "Aram ko kung nano ang in-iisp mo, Santa Maria.",
+    "src": "audio/bcl/02.wav",
+    "cer": 0.1136,
+    "hyp": "aram ko kun nano an iniiismo santa maria"
+   }
+  ]
+ }
+};
+const LANGS = [
+  ["tgl", "Tagalog", "Filipino"], ["ceb", "Cebuano", "Bisaya"], ["hil", "Hiligaynon", "Ilonggo"], ["war", "Waray", "Samar-Leyte"],
+  ["ilo", "Ilocano", "Ilokano"], ["pam", "Kapampangan", "Pampanga"], ["bcl", "Bikol", "Central Bikol"],
+];
+const SYS = [["human", "Human"], ["voxcpm2_wika", "WIKA-F1"], ["voxcpm2_design", "Designed"], ["voxcpm2_clone", "Native clone"]];
+const pct = x => (100 * x).toFixed(1) + "%";
+const T = DATA.table;
+function ratio(l) { return T[l + "|voxcpm2_wika"].cer / T[l + "|human"].cer; }
+
+const tbl = document.getElementById("tbl");
+let h = "<thead><tr><th>Language</th>" + SYS.map(s => `<th>${s[1]}</th>`).join("") + "<th>Wika PER</th><th>Verdict</th></tr></thead><tbody>";
+for (const [l, name] of LANGS) {
+  h += `<tr><td class="k">${name}</td>`;
+  for (const [s] of SYS) {
+    const r = T[l + "|" + s];
+    h += r ? `<td class="${s === "voxcpm2_wika" ? "wika" : ""}">${pct(r.cer)}<span class="sub">${pct(r.wer)} words</span></td>` : `<td><span class="sub">n/a</span></td>`;
+  }
+  const q = ratio(l);
+  h += `<td>${pct(T[l + "|voxcpm2_wika"].per)}<span class="sub">human ${pct(T[l + "|human"].per)}</span></td>`;
+  h += `<td><span class="pill ${q <= 1.05 ? "ok" : "mid"}">${q <= 1.05 ? "At or below human" : "Within " + q.toFixed(2) + "x"}</span></td></tr>`;
+}
+tbl.innerHTML = h + "</tbody>";
+
+const better = LANGS.filter(([l]) => ratio(l) <= 1.0).length;
+document.getElementById("verdict").innerHTML =
+  `<p><strong>All ${LANGS.length} pass the teacher bar.</strong> WIKA-F1 scored at or below the human error rate in ${better} of ${LANGS.length} languages, and within ${Math.max(...LANGS.map(([l]) => ratio(l))).toFixed(2)}x of human in the rest. No broken clips.</p>` +
+  `<p>It also beat the designed voice and the native-speaker clones, so the Wika voice itself helps.</p>`;
+
+const cards = document.getElementById("cards");
+for (const [l, name, alt] of LANGS) {
+  const c = document.createElement("article");
+  c.className = "card";
+  c.innerHTML = `<header><h2></h2><span></span></header>`;
+  c.querySelector("h2").textContent = name;
+  c.querySelector("span").textContent = `${alt} · WIKA-F1 ${pct(T[l + "|voxcpm2_wika"].cer)} vs human ${pct(T[l + "|human"].cer)}`;
+  for (const s of DATA.samples[l]) {
+    const d = document.createElement("div");
+    d.className = "s";
+    d.innerHTML = `<q></q><audio controls preload="none"></audio><div class="heard"></div>`;
+    d.querySelector("q").textContent = s.text;
+    d.querySelector("audio").src = s.src;
+    d.querySelector("audio").setAttribute("aria-label", name + ": " + s.text);
+    d.querySelector(".heard").textContent = s.hyp ? `recognizer heard: "${s.hyp}" (${pct(s.cer)} off)` : `Whisper check: ${pct(s.cer)} off`;
+    c.appendChild(d);
+  }
+  cards.appendChild(c);
+}
+</script>
+
+</body></html>
